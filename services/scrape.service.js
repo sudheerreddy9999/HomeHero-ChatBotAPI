@@ -22,8 +22,8 @@ const scrapeService = async (request) => {
     const browser = await puppeteer.launch({
       headless: "new", // or true for stable compatibility
       args: ["--no-sandbox", "--disable-setuid-sandbox","--disable-dev-shm-usage", ],
+        executablePath: process.env.CHROME_PATH,
     });
-
     const page = await browser.newPage();
 
     await page.goto(url, { waitUntil: "networkidle0" });
