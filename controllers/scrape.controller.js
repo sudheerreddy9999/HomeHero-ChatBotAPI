@@ -3,6 +3,7 @@ import scrapeService from "../services/scrape.service.js";
 import logger from "../utility/logger.utility.js";
 
 const ScrapeController = async (request, response) => {
+    console.log("Received scrape request:", request.params, request.body);
     try {
         const data = await scrapeService.scrapeService(request);
         return response.status(200).json({ message: "Scraping completed successfully", data });

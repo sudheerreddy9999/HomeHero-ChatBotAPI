@@ -1,5 +1,12 @@
+"use strict";
 import puppeteer from "puppeteer";
 import fs from "fs";
+import path from "path";
+import mysql from "../config/database/database.config.js";
+import logger from "../utility/logger.utility.js";
+import queries from "../config/app/query.config.js";
+import { QueryTypes } from "sequelize";
+import ScrapingDto from "../dto/scrape.dto.js";
 
 const scrapeService = async (request) => {
   try {
@@ -9,62 +16,102 @@ const scrapeService = async (request) => {
 
     await page.goto(url, { waitUntil: "networkidle0" });
 
-    const fullText = await page.evaluate(() => {
-      return document.body.innerText;
-    });
+    const fullText = await page.evaluate(() => document.body.innerText);
 
     const lines = fullText
       .split("\n")
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
 
-    const extractedData = [];
+    const topServices = [];
+    const servicesMap = {};
+    const fallbackData = [];
 
     for (let i = 0; i < lines.length; i++) {
-      const current = lines[i];
-      const next = lines[i + 1] || "";
+      const name = lines[i];
+      const subtitle = lines[i + 1] || "";
 
-      const priceMatch = next.match(/₹\s?\d{2,5}₹?\d{0,5}/); // ₹799₹599 or ₹799
-      const isServiceName = /(repair|service|cleaning|mount|installation|geyser|purifier|tap|pipe|tv)/i.test(
-        current
-      );
+      if (/services?/i.test(name) && /^[A-Za-z\s.,]{10,80}$/.test(subtitle)) {
+        const key = name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "_")
+          .replace(/^_+|_+$/g, "");
 
-      // Combine service name + price
-      if (isServiceName && priceMatch) {
-        const formattedPrice = priceMatch[0]
-          .replace(/₹/g, " ₹")
-          .trim()
-          .replace(/\s+/g, " ");
-
-        extractedData.push({
-          type: "service_info",
-          content: `Service: ${current}\nPrice: ${formattedPrice}`,
-        });
-
-        i++; 
-        continue;
+        topServices.push({ key, name, subtitle });
+        i++;
       }
-
-      if (/(\+91[-\s]?)?[6-9][0-9]{9}/.test(current)) {
-        extractedData.push({ type: "phone", content: current });
-        continue;
-      }
-      if (/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/.test(current)) {
-        extractedData.push({ type: "email", content: current });
-        continue;
-      }
-      extractedData.push({ type: "text", content: current });
     }
 
-    await browser.close();
-    fs.writeFileSync(
-      "data/homehero-content.json",
-      JSON.stringify(extractedData, null, 2)
-    );
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const nextLine = lines[i + 1] || "";
+      const nextNextLine = lines[i + 2] || "";
 
-    console.log("Scraped and saved!", extractedData.length, "items");
+      const isRating = /^\d\.\d\s*\/\s*5$/.test(nextLine);
+      const isPrice = /₹\s?\d{2,5}₹?\d{0,5}/.test(nextNextLine);
+
+      if (isRating && isPrice) {
+        const name = line;
+        const rating = nextLine;
+        const rawPrice = nextNextLine;
+
+        const priceList = rawPrice
+          .replace(/₹/g, " ₹")
+          .trim()
+          .replace(/\s+/g, " ")
+          .split("₹")
+          .filter((x) => x)
+          .map((x) => `₹${x.trim()}`);
+
+        const key = name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "_")
+          .replace(/^_+|_+$/g, "");
+
+        servicesMap[key] = {
+          name,
+          rating,
+          price:
+            priceList.length === 2
+              ? { original: priceList[0], discounted: priceList[1] }
+              : { price: priceList[0] },
+        };
+
+        i += 2;
+        continue;
+      }
+
+      if (/(\+91[-\s]?)?[6-9][0-9]{9}/.test(line)) {
+        fallbackData.push({ type: "phone", content: line });
+        continue;
+      }
+
+      if (/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/.test(line)) {
+        fallbackData.push({ type: "email", content: line });
+        continue;
+      }
+    }
+
+    const finalData = {
+      top_services: topServices,
+      services: servicesMap,
+      meta: fallbackData,
+    };
+
+    // 🗂 Save to file
+    const filename = `homehero-content-${Date.now()}.json`;
+    const filePath = path.join("data", filename);
+    fs.writeFileSync(filePath, JSON.stringify(finalData, null, 2));
+
+    const data = await ScrapingDto.StoreScrapedFile(finalData);
+    if(!data) {
+      throw new Error("Failed to store scraped file");
+    }
+    else {
+      console.log("Scraped file stored successfully:", data);
+    }
   } catch (error) {
-    console.error("scrapeService error:", error);
+    logger.error(" scrapeService error:", error);
     throw error;
   }
 };

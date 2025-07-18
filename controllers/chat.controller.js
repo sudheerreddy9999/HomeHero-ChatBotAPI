@@ -4,6 +4,7 @@ import ChatService from "../services/chat.service.js";
 
 const QueryServicesController = async (request, response) => {
   try {
+    console.log("Received chat request:", request.body);
     const { question } = request.body;
     if (!question) {
       return response.status(400).json({ message: "Query is required" });

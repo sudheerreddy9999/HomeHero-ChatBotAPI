@@ -1,30 +1,21 @@
-"use strict";
-
-import { body,validationResult } from "express-validator";
+import { body, validationResult } from "express-validator";
 
 const scrapeValidation = [
-    // body("url")
-    //     .trim()
-    //     .notEmpty()
-    //     .withMessage("Please Enter Valid URL")
-    //     .isURL()
-    //     .withMessage("Please Enter a Valid URL"),
-    // body("type")
-    //     .trim()
-    //     .notEmpty()
-    //     .withMessage("Please Enter Type of Scraping")
-    //     .isIn(["text", "image", "video"])
-    //     .withMessage("Type must be one of: text, image, video"),
-    (request, response, next) => {
-        const errors = validationResult(request);
+    body("url")
+        .trim()
+        .notEmpty()
+        .withMessage("Please Enter Valid URL")
+        .isURL()
+        .withMessage("Please Enter a Valid URL"),
+    (req, res, next) => {
+        console.log("Request body inside validator:", req.body);
+        const errors = validationResult(req);
         if (!errors.isEmpty()) {
-        return response
-            .status(400)
-            .json({ message: "Bad Request", error: errors });
+            return res.status(400).json({ message: "Validation failed", errors: errors.array() });
         }
         next();
     },
-]
+];
 
 const ScrapingValidation = { scrapeValidation };
 export default ScrapingValidation;

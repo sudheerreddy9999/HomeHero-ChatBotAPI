@@ -11,6 +11,7 @@ const index = pinecone.index(process.env.PINECONE_INDEX_NAME || "homehero");
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const QueryServices = async (query) => {
+  console.log("Querying services with:", query);
   try {
     const embeddingRes = await openai.embeddings.create({
       model: "text-embedding-3-small",

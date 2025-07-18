@@ -14,7 +14,6 @@ Router.use(customUtility.SetTimeZone);
 
 Router.post(
   "/scrape",
-  ScrapingValidation.scrapeValidation,
   ScrapingController.ScrapeController
 );
 Router.post("/chat", ChatController.QueryServicesController);
