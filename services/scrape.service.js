@@ -21,8 +21,7 @@ const scrapeService = async (request) => {
     // }
     const browser = await puppeteer.launch({
       headless: "new", // or true for stable compatibility
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      executablePath: puppeteer.executablePath(),
+      args: ["--no-sandbox", "--disable-setuid-sandbox","--disable-dev-shm-usage", ],
     });
 
     const page = await browser.newPage();
