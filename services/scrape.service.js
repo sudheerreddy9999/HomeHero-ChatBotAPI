@@ -25,8 +25,7 @@ const scrapeService = async (request) => {
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
-      ],
-      executablePath: process.env.CHROME_PATH,
+      ]
     });
     const page = await browser.newPage();
 

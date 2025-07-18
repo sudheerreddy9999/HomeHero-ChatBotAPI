@@ -5,7 +5,7 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "postinstall": "PUPPETEER_CACHE_DIR=/home/render/.cache/puppeteer npx puppeteer browsers install chrome",
+    "postinstall": "npx puppeteer install chrome",
     "local": "nodemon server.js",
     "start": "node server.js"
   },
