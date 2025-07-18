@@ -11,7 +11,11 @@ import ScrapingDto from "../dto/scrape.dto.js";
 const scrapeService = async (request) => {
   try {
     const url = request.body.url;
-    const browser = await puppeteer.launch({ headless: "new" });
+    const browser = await puppeteer.launch({
+      headless: "new", // or true for stable compatibility
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
+
     const page = await browser.newPage();
 
     await page.goto(url, { waitUntil: "networkidle0" });
@@ -104,10 +108,9 @@ const scrapeService = async (request) => {
     fs.writeFileSync(filePath, JSON.stringify(finalData, null, 2));
 
     const data = await ScrapingDto.StoreScrapedFile(finalData);
-    if(!data) {
+    if (!data) {
       throw new Error("Failed to store scraped file");
-    }
-    else {
+    } else {
       console.log("Scraped file stored successfully:", data);
     }
   } catch (error) {
