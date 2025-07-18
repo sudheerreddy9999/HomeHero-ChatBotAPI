@@ -1,5 +1,5 @@
 "use strict";
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
 import fs from "fs";
 import path from "path";
 import mysql from "../config/database/database.config.js";
@@ -20,9 +20,9 @@ const scrapeService = async (request) => {
     //   console.error("Chrome binary not found!");
     // }
     const browser = await puppeteer.launch({
-      headless: "new", // or true for stable compatibility
-      args: ["--no-sandbox", "--disable-setuid-sandbox","--disable-dev-shm-usage", ],
-        executablePath: process.env.CHROME_PATH,
+      headless: "new",
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      executablePath: "/usr/bin/chromium", // fallback: "/usr/bin/chromium-browser"
     });
     const page = await browser.newPage();
 
