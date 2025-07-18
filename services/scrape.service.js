@@ -1,5 +1,5 @@
 "use strict";
-import puppeteer from 'puppeteer';
+import puppeteer from "puppeteer";
 import fs from "fs";
 import path from "path";
 import mysql from "../config/database/database.config.js";
@@ -21,11 +21,12 @@ const scrapeService = async (request) => {
     // }
     const browser = await puppeteer.launch({
       headless: "new",
+      executablePath: "/usr/bin/chromium-browser",
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
-      ]
+      ],
     });
     const page = await browser.newPage();
 
