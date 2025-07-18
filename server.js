@@ -1,4 +1,5 @@
 "use strict";
+process.env.PUPPETEER_CACHE_DIR = '/opt/render/.cache/puppeteer';
 import express from "express";
 import helmet from "helmet";
 import cors from "cors";
