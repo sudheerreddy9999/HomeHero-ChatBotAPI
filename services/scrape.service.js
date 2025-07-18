@@ -12,18 +12,17 @@ const scrapeService = async (request) => {
   try {
     const url = request.body.url;
 
-    if (
-      !fs.existsSync(
-        "/opt/render/.cache/puppeteer/chrome/linux-138.0.7204.94/chrome-linux64/chrome"
-      )
-    ) {
-      console.error("Chrome binary not found!");
-    }
+    // if (
+    //   !fs.existsSync(
+    //     "/opt/render/.cache/puppeteer/chrome/linux-138.0.7204.94/chrome-linux64/chrome"
+    //   )
+    // ) {
+    //   console.error("Chrome binary not found!");
+    // }
     const browser = await puppeteer.launch({
       headless: "new", // or true for stable compatibility
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
-      executablePath:
-        "/opt/render/.cache/puppeteer/chrome/linux-138.0.7204.94/chrome-linux64/chrome",
+      executablePath: puppeteer.executablePath(),
     });
 
     const page = await browser.newPage();
