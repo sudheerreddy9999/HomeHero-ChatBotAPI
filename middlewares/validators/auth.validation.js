@@ -1,6 +1,11 @@
 "use strict";
 
-import { header, body, validationResult } from "express-validator";
+import { header, validationResult } from "express-validator";
+import dotenv from "dotenv";
+import logger from "../../utility/logger.utility.js";
+import jwt from "jsonwebtoken";
+
+dotenv.config();
 
 const loginValidation = [
   header("email")
@@ -38,6 +43,18 @@ const loginValidation = [
   },
 ];
 
-const AuthValidation = { loginValidation };
+
+const GetUserDeatilsFromToken = async (token) => {
+  try {
+    const secret = process.env.JWT_SECRETKEY_USER;
+    const decoded = jwt.verify(token, secret);
+    return decoded;
+  } catch (err) {
+    logger.error({ValidationError:err})
+    return "Invalid Token"
+  }
+};
+
+const AuthValidation = { loginValidation,GetUserDeatilsFromToken };
 
 export default AuthValidation;

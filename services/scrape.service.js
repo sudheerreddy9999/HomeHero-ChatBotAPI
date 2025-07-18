@@ -2,26 +2,14 @@
 import puppeteer from "puppeteer";
 import fs from "fs";
 import path from "path";
-import mysql from "../config/database/database.config.js";
 import logger from "../utility/logger.utility.js";
-import queries from "../config/app/query.config.js";
-import { QueryTypes } from "sequelize";
 import ScrapingDto from "../dto/scrape.dto.js";
 
 const scrapeService = async (request) => {
   try {
     const url = request.body.url;
-
-    // if (
-    //   !fs.existsSync(
-    //     "/opt/render/.cache/puppeteer/chrome/linux-138.0.7204.94/chrome-linux64/chrome"
-    //   )
-    // ) {
-    //   console.error("Chrome binary not found!");
-    // }
     const browser = await puppeteer.launch({
       headless: "new",
-      executablePath: "/path/to/Chrome",
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",
@@ -113,12 +101,9 @@ const scrapeService = async (request) => {
       services: servicesMap,
       meta: fallbackData,
     };
-
-    // 🗂 Save to file
-    const filename = `homehero-content-${Date.now()}.json`;
+    const filename = `homehero-content.json`;
     const filePath = path.join("data", filename);
     fs.writeFileSync(filePath, JSON.stringify(finalData, null, 2));
-
     const data = await ScrapingDto.StoreScrapedFile(finalData);
     if (!data) {
       throw new Error("Failed to store scraped file");

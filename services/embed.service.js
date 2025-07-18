@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import fs from "fs";
 import { Pinecone } from "@pinecone-database/pinecone";
+import logger from "../utility/logger.utility.js";
 import { OpenAI } from "openai";
 
 dotenv.config();
@@ -13,14 +14,22 @@ const pinecone = new Pinecone({
 });
 
 const index = pinecone.index(process.env.PINECONE_INDEX_NAME || "homehero");
-const data = JSON.parse(fs.readFileSync("data/homehero-content.json", "utf8"));
-const  embedAndStore=async()=> {
+let data = [];
+try {
+  const rawData = fs.readFileSync("data/homehero-content.json", "utf8");
+  data = rawData ? JSON.parse(rawData) : [];
+} catch (err) {
+  logger.error({ EmbbedServiceGettingJsonFile: err.message });
+  data = [];
+}
+
+const embedAndStore = async () => {
   try {
     for (let i = 0; i < data.length; i++) {
       const item = data[i];
 
       const embeddingRes = await openai.embeddings.create({
-        model: "text-embedding-3-small", 
+        model: "text-embedding-3-small",
         input: item.content,
       });
 
@@ -36,15 +45,13 @@ const  embedAndStore=async()=> {
           },
         },
       ]);
-
-      console.log(` Stored: ${item.content}`);
     }
-    return "All items embedded and stored successfully!";
+    return true;
   } catch (error) {
-    console.error("❌ Error embedding and storing:", error);
+    logger.error({ embedAndStore: error.message });
   }
-}
+};
 
-const embedService = {embedAndStore};
+const embedService = { embedAndStore };
 
 export default embedService;
