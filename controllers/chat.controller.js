@@ -5,7 +5,7 @@ import ChatService from "../services/chat.service.js";
 const QueryServicesController = async (request, response) => {
   try {
     const result = await ChatService.QueryServices(request);
-    console.log(result)
+    console.log(result);
     if (!result) {
       return response.status(404).json({ message: "No results found" });
     }
@@ -18,5 +18,21 @@ const QueryServicesController = async (request, response) => {
       .json({ message: "Internal Server Error", error: error.message });
   }
 };
-const ChatController = { QueryServicesController };
+const GetChatMessagesBySessionController = async (request, response) => {
+  try {
+    const result = await ChatService.GetChatMessagesBySessionService(request);
+    if (request.errorCode) {
+      return response
+        .status(result.errorCode)
+        .json({ message: result.customMessage });
+    }
+    return response.status(200).json({ data: result });
+  } catch (error) {a  
+    logger.error({ GetChatMessagesBySessionController: error.message });
+    return response
+      .status(500)
+      .json({ message: "Internal Server Error", error: error.message });
+  }
+};
+const ChatController = { QueryServicesController,GetChatMessagesBySessionController };
 export default ChatController;

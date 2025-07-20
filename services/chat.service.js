@@ -5,6 +5,9 @@ import logger from "../utility/logger.utility.js";
 import AuthValidation from "../middlewares/validators/auth.validation.js";
 import ChatDto from "../dto/chat.dto.js";
 import AuthDTO from "../dto/auth.dto.js";
+import customUtility from "../utility/custom.utility.js";
+
+const { CustomMessage } = customUtility;
 
 dotenv.config();
 
@@ -12,7 +15,7 @@ const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pinecone.index(process.env.PINECONE_INDEX_NAME || "homehero");
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const QueryServices = async (request, response) => {
+const QueryServices = async (request) => {
   const token = request.headers.authorization?.split(" ")[1];
   let user_id;
 
@@ -20,40 +23,48 @@ const QueryServices = async (request, response) => {
   if (userDetails === "Invalid Token") {
     logger.error("Invalid token received");
     return response.status(401).json({ message: "Unauthorized" });
-  } else {
-    // user_id = userDetails?.id;
-    const userData = await AuthDTO.GetUserDTO(
-      userDetails.email,
-      userDetails?.mobile_number
-    );
-    user_id = userData[0].user_id;
   }
+
+  const userData = await AuthDTO.GetUserDTO(
+    userDetails.email,
+    userDetails?.mobile_number
+  );
+  user_id = userData?.[0]?.user_id;
 
   if (!user_id) {
     logger.error("User ID missing from token");
     return response.status(400).json({ message: "User not found" });
   }
 
-  const { question } = request.body;
-  if (!question) {
-    return response.status(400).json({ message: "Query is required" });
+  const { question, session_id } = request.body;
+  if (!question || !session_id) {
+    return response
+      .status(400)
+      .json({ message: "Question and Session ID are required" });
   }
 
   try {
-    // ✅ Store user's message
+    // 📝 Store user's question
     await ChatDto.InsertChatMessageDTO({
       user_id,
       role: "user",
       message: question,
+      session_id,
     });
 
+    // 🧠 Get last 3 messages from session
+    const previousMessages = await ChatDto.SessionMessages3DTO(session_id);
+    const formattedHistory = previousMessages
+      .map((msg) => `${msg.role === "user" ? "User" : "Bot"}: ${msg.message}`)
+      .join("\n");
+
+    // 🔍 Vector embedding
     const embeddingRes = await openai.embeddings.create({
       model: "text-embedding-3-small",
       input: question,
     });
 
-    let embedding = embeddingRes.data[0].embedding;
-    embedding = embedding.slice(0, 1024);
+    let embedding = embeddingRes.data[0].embedding.slice(0, 1024);
 
     const result = await index.query({
       topK: 3,
@@ -83,20 +94,23 @@ const QueryServices = async (request, response) => {
         {
           role: "system",
           content:
-            "You are a helpful assistant for a home services platform. Use the context provided to answer user questions.",
+            "You are a helpful assistant for a home services platform. Use both the previous chat history and current context to answer the user.",
         },
         {
           role: "user",
-          content: `Answer the following question using the context below:\n\nContext:\n${context}\n\nQuestion: ${question}`,
+          content: `Chat History:\n${formattedHistory}\n\nContext:\n${context}\n\nQuestion: ${question}`,
         },
       ],
     });
 
     const answer = completion.choices[0].message.content;
+
+    // 📝 Store bot response
     await ChatDto.InsertChatMessageDTO({
       user_id,
       role: "bot",
       message: answer,
+      session_id,
     });
 
     return { answer };
@@ -106,5 +120,22 @@ const QueryServices = async (request, response) => {
   }
 };
 
-const ChatService = { QueryServices };
+const GetChatMessagesBySessionService = async (request) => {
+  try {
+    const { session_id } = request.query;
+    if (!session_id) {
+      return CustomMessage(400, "Session ID is required");
+    }
+    const messages = await ChatDto.GetChatMessagesBySessionDTO(session_id);
+    if (messages.length === 0) {
+      return CustomMessage(404, "No messages found for this session");
+    }
+    return messages;
+  } catch (error) {
+    logger.error({ GetChatMessagesBySessionService: error.message });
+    throw new Error("Failed to retrieve chat messages");
+  }
+};
+
+const ChatService = { QueryServices, GetChatMessagesBySessionService };
 export default ChatService;

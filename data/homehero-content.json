@@ -72,5 +72,27 @@
       "type": "email",
       "content": "homehero.care@gmail.com"
     }
+  ],
+  "embeddingChunks": [
+    {
+      "id": "ac_repair_gas_refill",
+      "content": "AC Repair & Gas Refill has a rating of 4.5 / 5. The price is ₹599 (original ₹799)."
+    },
+    {
+      "id": "led_tv_wall_mount",
+      "content": "LED TV Wall Mount has a rating of 4.6 / 5. The price is ₹349 (original ₹499)."
+    },
+    {
+      "id": "geyser_installation",
+      "content": "Geyser Installation has a rating of 4.3 / 5. The price is ₹699 (original ₹899)."
+    },
+    {
+      "id": "ro_water_purifier_service",
+      "content": "RO Water Purifier Service has a rating of 4.4 / 5. The price is ₹449 (original ₹599)."
+    },
+    {
+      "id": "bathroom_tap_pipe_fix",
+      "content": "Bathroom Tap & Pipe Fix has a rating of 4.2 / 5. The price is ₹349 (original ₹499)."
+    }
   ]
 }
