@@ -7,9 +7,9 @@ import logger from "../utility/logger.utility.js";
 const InsertChatMessageDTO = async ({ user_id, role, message, session_id }) => {
   try {
     user_id = user_id ?? null;
-    role = typeof role === 'string' ? role.trim() : null;
-    message = typeof message === 'string' ? message.trim() : null;
-    session_id = typeof session_id === 'string' ? session_id.trim() : null;
+    role = typeof role === 'string' ? role?.trim() : null;
+    message = typeof message === 'string' ? message?.trim() : null;
+    session_id = typeof session_id === 'string' ? session_id?.trim() : null;
 
     const query = queries.INSERT_CHATBOT_MESSAGE;
     const replacements = {
