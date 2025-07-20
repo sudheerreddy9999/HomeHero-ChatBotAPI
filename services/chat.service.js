@@ -45,12 +45,12 @@ const QueryServices = async (request) => {
 
   try {
     // 📝 Store user's question
-    await ChatDto.InsertChatMessageDTO({
+    await ChatDto.InsertChatMessageDTO(
       user_id,
-      role: "user",
-      message: question,
+       "user",
+       question,
       session_id,
-    });
+    );
 
     // 🧠 Get last 3 messages from session
     const previousMessages = await ChatDto.SessionMessages3DTO(session_id);
@@ -106,12 +106,12 @@ const QueryServices = async (request) => {
     const answer = completion.choices[0].message.content;
 
     // 📝 Store bot response
-    await ChatDto.InsertChatMessageDTO({
+    await ChatDto.InsertChatMessageDTO(
       user_id,
-      role: "bot",
-      message: answer,
+       "bot",
+       answer,
       session_id,
-    });
+    );
 
     return { answer };
   } catch (error) {
