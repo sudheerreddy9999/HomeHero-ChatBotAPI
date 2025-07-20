@@ -24,6 +24,7 @@ const InsertChatMessageDTO = async (
     });
     return data;
   } catch (error) {
+    console.log(error);
     logger.error({ InsertChatMessageDTO: error.message });
     throw new Error(error);
   }
