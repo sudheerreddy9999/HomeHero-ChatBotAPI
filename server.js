@@ -22,7 +22,7 @@ const mySqlDatabaseConnection = async () => {
     await mysql.authenticate();
     logger.info("database connected sucessfully")
   } catch (error) {
-    console.error(error);
+    logger.error({ DatabaseConnectionError: error.message });
   }
 };
 
