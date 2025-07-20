@@ -7,8 +7,10 @@ import logger from "../utility/logger.utility.js";
 const InsertChatMessageDTO = async ({ user_id, role, message, session_id }) => {
   try {
     user_id = user_id ?? null;
-    role = role ?? null;
-    session_id = session_id ?? null;
+    role = typeof role === 'string' ? role.trim() : null;
+    message = typeof message === 'string' ? message.trim() : null;
+    session_id = typeof session_id === 'string' ? session_id.trim() : null;
+
     const query = queries.INSERT_CHATBOT_MESSAGE;
     const replacements = {
       user_id,
@@ -16,16 +18,19 @@ const InsertChatMessageDTO = async ({ user_id, role, message, session_id }) => {
       message,
       session_id,
     };
+
     const data = await mysql.query(query, {
       replacements,
       type: QueryTypes.INSERT,
     });
+
     return data;
   } catch (error) {
-    logger.error({ InsertChatMessageDTO: error.message }); 
+    logger.error({ InsertChatMessageDTO: error.message });
     throw new Error(error);
   }
 };
+
 
 const GetChatMessagesBySessionDTO = async (session_id) => {
   try {
