@@ -1,10 +1,10 @@
 "use strict";
 import logger from "../utility/logger.utility.js";
-import ChatService from "../services/chat.service.js";
+import ChatServices from "../services/chat.service.js";
 
-const QueryServicesController = async (request, response) => {
+const ChatServicesController = async (request, response) => {
   try {
-    const result = await ChatService.QueryServices(request);
+    const result = await ChatServices.ChatService(request);
     console.log(result);
     if (!result) {
       return response.status(404).json({ message: "No results found" });
@@ -20,7 +20,7 @@ const QueryServicesController = async (request, response) => {
 };
 const GetChatMessagesBySessionController = async (request, response) => {
   try {
-    const result = await ChatService.GetChatMessagesBySessionService(request);
+    const result = await ChatServices.GetChatMessagesBySessionService(request);
     if (request.errorCode) {
       return response
         .status(result.errorCode)
@@ -34,5 +34,5 @@ const GetChatMessagesBySessionController = async (request, response) => {
       .json({ message: "Internal Server Error", error: error.message });
   }
 };
-const ChatController = { QueryServicesController,GetChatMessagesBySessionController };
+const ChatController = { ChatServicesController,GetChatMessagesBySessionController };
 export default ChatController;

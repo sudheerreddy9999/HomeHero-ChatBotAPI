@@ -14,7 +14,7 @@ const Router = express.Router();
 Router.use(customUtility.SetTimeZone);
 
 Router.post("/scrape", ScrapingController.ScrapeController);
-Router.post("/chat", ChatController.QueryServicesController);
+Router.post("/chat", ChatController.ChatServicesController);
 Router.post("/embed", EmbedController.EmbedAndServiceController);
 
 Router.use(UserJwtMiddleWare.VerifyToken);

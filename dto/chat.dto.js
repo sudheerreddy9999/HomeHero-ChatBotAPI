@@ -24,6 +24,37 @@ const InsertChatMessageDTO = async ( user_id = null, role = null, message,sessio
   }
 };
 
+const GetChatMessagesBySessionDTO = async (session_id) => {
+  try {
+    const query = queries.GET_CHATBOT_MESSAGES_BY_SESSION;
+    const replacements = { session_id };
+    const data = await mysql.query(query, {
+      replacements,
+      type: QueryTypes.SELECT,
+    });
+    return data;
+  } catch (error) {
+    logger.error({ GetChatMessagesBySessionDTO: error.message });
+    throw new Error(error);
+  }
+};
 
-const ChatDto = { InsertChatMessageDTO };
+const SessionMessages3DTO = async (session_id) => {
+  try { 
+    const query = queries.GET_CHATBOT_MESSAGES_BY_SESSION_LIMIT3;
+    const replacements = { session_id };
+    const data = await mysql.query(query, {
+      replacements,
+      type: QueryTypes.SELECT,
+    });
+    return data;
+  } catch (error) {
+    logger.error({ SessionMessages3DTO: error.message });
+    throw new Error(error);
+  } 
+}
+
+const ChatDto = { InsertChatMessageDTO,GetChatMessagesBySessionDTO,SessionMessages3DTO };
+
+
 export default ChatDto;

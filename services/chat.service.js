@@ -15,14 +15,14 @@ const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pinecone.index(process.env.PINECONE_INDEX_NAME || "homehero");
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-const QueryServices = async (request) => {
+const ChatService = async (request) => {
   const token = request.headers.authorization?.split(" ")[1];
   let user_id;
 
   const userDetails = await AuthValidation.GetUserDeatilsFromToken(token);
   if (userDetails === "Invalid Token") {
     logger.error("Invalid token received");
-    return response.status(401).json({ message: "Unauthorized" });
+    return CustomMessage(401, "Invalid Token");
   }
 
   const userData = await AuthDTO.GetUserDTO(
@@ -33,14 +33,12 @@ const QueryServices = async (request) => {
 
   if (!user_id) {
     logger.error("User ID missing from token");
-    return response.status(400).json({ message: "User not found" });
+    return CustomMessage(400, "User ID is required");
   }
 
   const { question, session_id } = request.body;
   if (!question || !session_id) {
-    return response
-      .status(400)
-      .json({ message: "Question and Session ID are required" });
+    return CustomMessage(400, "Question and session_id are required");
   }
 
   try {
@@ -74,9 +72,7 @@ const QueryServices = async (request) => {
 
     const matches = result.matches || [];
     if (matches.length === 0) {
-      return response.status(200).json({
-        message: "I couldn't find relevant information for your question.",
-      });
+      return CustomMessage(404, "No relevant context found");
     }
 
     const context = matches
@@ -115,8 +111,8 @@ const QueryServices = async (request) => {
 
     return { answer };
   } catch (error) {
-    logger.error({ queryServices: error.message });
-    return response.status(500).json({ message: "Failed to generate answer" });
+    logger.error({ chatServices: error.message });
+    return CustomMessage(500, "Failed to process your request");
   }
 };
 
@@ -137,5 +133,5 @@ const GetChatMessagesBySessionService = async (request) => {
   }
 };
 
-const ChatService = { QueryServices, GetChatMessagesBySessionService };
-export default ChatService;
+const ChatServices = { ChatService, GetChatMessagesBySessionService };
+export default ChatServices;
